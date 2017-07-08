@@ -7,7 +7,53 @@ from textblob.sentiments import NaiveBayesAnalyzer
 #Sandbox Users : khattarsakshi,insta.mriu.test.04,aanchal_arora_
 
 APP_ACCESS_TOKEN = '1641251650.e268c6d.1782913bfb9d42a2b628f566725cc02e'
-BASE_URL = 'https://api.instagram.com/v1/'
+BASE_URL = 'https://api.instagram.com/v1/' #common for all the Instagram API endpoints
+
+
+#list to store hashtags from all the post required
+hashtag_list = []
+
+#method to get the hashtags from all the post of a user
+def get_hashtags(insta_username):
+    user_id = get_user_id(insta_username)
+    if user_id == None:
+        print 'User does not exist!'
+        exit()
+    request_url = (BASE_URL + 'users/%s/media/recent/?access_token=%s') % (user_id, APP_ACCESS_TOKEN)
+    print 'GET request url : %s' % (request_url)
+    user_media = requests.get(request_url).json()
+
+    if user_media['meta']['code'] == 200:
+        if len(user_media['data']):
+            for x in range(0, len(user_media['data'])):
+                hashtags = user_media['data'][x]['tags']
+                print hashtags
+                hashtag_list.append(hashtags)
+        else:
+            print 'No post found.'
+            exit()
+    else:
+        print 'Status code other than 200 received!'
+        exit()
+
+# method to download image of a user
+def download_user_image(insta_username):
+    media_id = get_post_id(insta_username)
+    request_url = (BASE_URL + 'media/%s/?access_token=%s') % (media_id, APP_ACCESS_TOKEN)
+    print 'GET request url : %s' % (request_url)
+    user_media = requests.get(request_url).json()
+    print user_media
+    if user_media['meta']['code'] == 200:
+        if len(user_media['data']):
+            if user_media['data']['type'] == "image":
+                image_name = user_media['data']['id'] + '.jpeg'
+                image_url = user_media['data']['images']['standard_resolution']['url']
+                urllib.urlretrieve(image_url, image_name)  # using urllib library for downloading the image
+                print 'Your image has been downloaded!'
+            else:
+                print 'The post is not an image'
+    else:
+        print 'Status code other than 200 received!'
 
 
 #method to get self information
@@ -173,7 +219,7 @@ def post_a_comment(insta_username):
         print 'Unable to add comment. Try again!'
 
 
-#method to delete negative comments from post
+#method to delete negative comments from post using TextBlob library
 def delete_negative_comment(insta_username):
     media_id = get_post_id(insta_username)
     request_url = (BASE_URL + 'media/%s/comments/?access_token=%s') % (media_id, APP_ACCESS_TOKEN)
@@ -225,7 +271,8 @@ def start_bot():
         print 'g.Get a list of comments on the recent post of a user\n'
         print 'h.Make a comment on the recent post of a user\n'
         print 'i.Delete negative comments from the recent post of a user\n'
-        print 'j.Exit'
+        print 'j.Download the post of a user\n'
+        print 'k.Exit'
 
         choice=raw_input('Enter you choice: ')
         if choice=='a':
@@ -254,6 +301,9 @@ def start_bot():
             insta_username = raw_input('Enter the username of the user: ')
             delete_negative_comment(insta_username)
         elif choice == 'j':
+            insta_username = raw_input('Enter the username of the user: ')
+            download_user_image(insta_username)
+
             exit()
         else:
             print 'wrong choice'
