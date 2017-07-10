@@ -3,15 +3,33 @@ import urllib
 from textblob import TextBlob
 from textblob.sentiments import NaiveBayesAnalyzer
 
+
+APP_ACCESS_TOKEN = '1641251650.e268c6d.1782913bfb9d42a2b628f566725cc02e'
 #Token Owner : ramanbidhuri
 #Sandbox Users : khattarsakshi,insta.mriu.test.04,aanchal_arora_
 
-APP_ACCESS_TOKEN = '1641251650.e268c6d.1782913bfb9d42a2b628f566725cc02e'
 BASE_URL = 'https://api.instagram.com/v1/' #common for all the Instagram API endpoints
-
 
 #list to store hashtags from all the post required
 hashtag_list = []
+keywords_list = []
+
+
+#method to get keywords from post
+def get_keyword():
+    if len(hashtag_list):
+        for x in range(0, len(hashtag_list)):
+            hashtag = hashtag_list[x]
+            apikey = 'lBzto9IhYQnI8Z6kd4dFap0gGbFexBgRBknxuISGFK4'
+            request_url = ('https://apis.paralleldots.com/keywords?q=%s&apikey=%s') % (hashtag, apikey)
+            print 'POST request url : %s' % (request_url)
+            keywords = requests.post(request_url, verify=False).json()
+            keywords_list.append(keywords)
+            print len(keywords_list)
+
+    else:
+        print 'hashtag list empty!!'
+
 
 #method to get the hashtags from all the post of a user
 def get_hashtags(insta_username):
@@ -23,7 +41,7 @@ def get_hashtags(insta_username):
     print 'GET request url : %s' % (request_url)
     user_media = requests.get(request_url).json()
 
-    if user_media['meta']['code'] == 200:
+    if user_media['meta']['code'] == 200: #HTTP 200 means transmission is OK
         if len(user_media['data']):
             for x in range(0, len(user_media['data'])):
                 hashtags = user_media['data'][x]['tags']
@@ -43,7 +61,7 @@ def download_user_image(insta_username):
     print 'GET request url : %s' % (request_url)
     user_media = requests.get(request_url).json()
     print user_media
-    if user_media['meta']['code'] == 200:
+    if user_media['meta']['code'] == 200: #HTTP 200 means transmission is OK
         if len(user_media['data']):
             if user_media['data']['type'] == "image":
                 image_name = user_media['data']['id'] + '.jpeg'
@@ -73,8 +91,7 @@ def self_info():
             print 'User does not exist!'
 
     else:
-        print 'Status code other than 200 received!' #HTTP 200 means transmission is OK
-
+        print 'Status code other than 200 received!'
 
 #method user ID by username
 def get_user_id(insta_username):
@@ -262,49 +279,49 @@ def start_bot():
         print '\n'
         print 'Welcome to instaBot!'
         print 'Your menu options are:'
-        print 'a.Get your own details\n'
-        print 'b.Get details of a user by username\n'
-        print 'c.Get details of our post\n'
-        print 'd.Get post of user by username\n'
-        print 'e.Get a list of people who have liked the recent post of a user\n'
-        print 'f.Like the recent post of a user\n'
-        print 'g.Get a list of comments on the recent post of a user\n'
-        print 'h.Make a comment on the recent post of a user\n'
-        print 'i.Delete negative comments from the recent post of a user\n'
-        print 'j.Download the post of a user\n'
-        print 'k.Exit'
+        print '1.Get your own details\n'
+        print '2.Get details of a user by username\n'
+        print '3.Get details of our post\n'
+        print '4.Get post of user by username\n'
+        print '5.Like the recent post of a user\n'
+        print '6.Comment on the post of a user\n'
+        print '7.Delete negative comments\n'
+        print '8.Download the post of a user\n'
+        print '9.Get the hashtags of post\n'
+        print '10.Get the keywords from the post\n'
 
         choice=raw_input('Enter you choice: ')
-        if choice=='a':
+        if choice=='1':
             self_info()
-        elif choice=='b':
+        elif choice=='2':
             insta_username = raw_input('Enter the username of the user: ')
             get_user_info(insta_username)
-        elif choice=='c':
+        elif choice=='3':
             get_own_post()
-        elif choice=='d':
+        elif choice=='4':
             insta_username = raw_input('Enter the username of the user: ')
             get_users_post(insta_username)
-        elif choice == 'e':
+        elif choice == '5':
             insta_username = raw_input('Enter the username of the user: ')
             like_a_post(insta_username)
-        elif choice == 'f':
-            insta_username = raw_input('Enter the username of the user: ')
-            like_a_post(insta_username)
-        elif choice == 'g':
+        elif choice == '6':
             insta_username = raw_input('Enter the username of the user: ')
             post_a_comment(insta_username)
-        elif choice == 'h':
-            insta_username = raw_input('Enter the username of the user: ')
-            post_a_comment(insta_username)
-        elif choice == 'i':
+        elif choice == '7':
             insta_username = raw_input('Enter the username of the user: ')
             delete_negative_comment(insta_username)
-        elif choice == 'j':
+        elif choice == '8':
             insta_username = raw_input('Enter the username of the user: ')
             download_user_image(insta_username)
+        elif choice == 9:
+            insta_username = raw_input('enter the username of the user: ')
+            get_hashtags(insta_username)
+        elif choice == 10:
+            get_keyword()
 
-            exit()
         else:
             print 'wrong choice'
+            show_menu = False
+
+#calling the method
 start_bot()
