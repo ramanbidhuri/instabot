@@ -2,6 +2,8 @@ import requests
 import urllib
 from textblob import TextBlob
 from textblob.sentiments import NaiveBayesAnalyzer
+from wordcloud import WordCloud, STOPWORDS
+import matplotlib.pyplot as plt
 
 
 APP_ACCESS_TOKEN = '1641251650.e268c6d.1782913bfb9d42a2b628f566725cc02e'
@@ -10,25 +12,31 @@ APP_ACCESS_TOKEN = '1641251650.e268c6d.1782913bfb9d42a2b628f566725cc02e'
 
 BASE_URL = 'https://api.instagram.com/v1/' #common for all the Instagram API endpoints
 
+
 #list to store hashtags from all the post required
 hashtag_list = []
-keywords_list = []
+
+text_list = []
 
 
-#method to get keywords from post
-def get_keyword():
+#function to generate wordcloud
+def generate_wordcloud():
     if len(hashtag_list):
-        for x in range(0, len(hashtag_list)):
-            hashtag = hashtag_list[x]
-            apikey = 'lBzto9IhYQnI8Z6kd4dFap0gGbFexBgRBknxuISGFK4'
-            request_url = ('https://apis.paralleldots.com/keywords?q=%s&apikey=%s') % (hashtag, apikey)
-            print 'POST request url : %s' % (request_url)
-            keywords = requests.post(request_url, verify=False).json()
-            keywords_list.append(keywords)
-            print len(keywords_list)
-
+        for y in range(0, len(hashtag_list)):
+            tags = " ".join(hashtag_list[y])
+            text_list.append(tags)
+        main = " ".join(text_list)
+        wordcloud = WordCloud(
+                                stopwords=STOPWORDS,
+                                background_color='white',
+                                width=1200,
+                                height=1000
+                            ).generate(main)
+        plt.imshow(wordcloud)
+        plt.axis('off')
+        plt.show()
     else:
-        print 'hashtag list empty!!'
+        print'No elements in hashtag list!!'
 
 
 #method to get the hashtags from all the post of a user
@@ -45,7 +53,6 @@ def get_hashtags(insta_username):
         if len(user_media['data']):
             for x in range(0, len(user_media['data'])):
                 hashtags = user_media['data'][x]['tags']
-                print hashtags
                 hashtag_list.append(hashtags)
         else:
             print 'No post found.'
@@ -281,14 +288,14 @@ def start_bot():
         print 'Your menu options are:'
         print '1.Get your own details\n'
         print '2.Get details of a user by username\n'
-        print '3.Get details of our post\n'
-        print '4.Get post of user by username\n'
+        print '3.Get your own post\n'
+        print '4.Get the recent post of user\n'
         print '5.Like the recent post of a user\n'
         print '6.Comment on the post of a user\n'
         print '7.Delete negative comments\n'
         print '8.Download the post of a user\n'
-        print '9.Get the hashtags of post\n'
-        print '10.Get the keywords from the post\n'
+        print '9.Get the hashtags of all the post of user\n'
+        print '10.Get the wordcloud\n'
 
         choice=raw_input('Enter you choice: ')
         if choice=='1':
@@ -313,11 +320,11 @@ def start_bot():
         elif choice == '8':
             insta_username = raw_input('Enter the username of the user: ')
             download_user_image(insta_username)
-        elif choice == 9:
+        elif choice == '9':
             insta_username = raw_input('enter the username of the user: ')
             get_hashtags(insta_username)
-        elif choice == 10:
-            get_keyword()
+        elif choice == '10':
+            generate_wordcloud()
 
         else:
             print 'wrong choice'
