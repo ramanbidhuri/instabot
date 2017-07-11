@@ -4,9 +4,11 @@ from textblob import TextBlob
 from textblob.sentiments import NaiveBayesAnalyzer
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
+from termcolor import colored
 
 
 APP_ACCESS_TOKEN = '1641251650.e268c6d.1782913bfb9d42a2b628f566725cc02e'
+
 #Token Owner : ramanbidhuri
 #Sandbox Users : khattarsakshi,insta.mriu.test.04,aanchal_arora_
 
@@ -15,7 +17,6 @@ BASE_URL = 'https://api.instagram.com/v1/' #common for all the Instagram API end
 
 #list to store hashtags from all the post required
 hashtag_list = []
-
 text_list = []
 
 
@@ -61,6 +62,29 @@ def get_hashtags(insta_username):
         print 'Status code other than 200 received!'
         exit()
 
+
+# Function to get the recent post liked by the user
+def recently_liked_media():
+    request_url = (BASE_URL + 'users/self/media/liked?access_token=%s') % (APP_ACCESS_TOKEN)
+    print 'GET request url : %s' % (request_url)
+    own_media = requests.get(request_url).json()
+    print own_media
+
+    if own_media['meta']['code'] == 200:
+        if len(own_media['data']):
+            liked_media_id = own_media['data'][0]['id']
+            print liked_media_id
+
+            image_name = own_media['data'][0]['id'] + '.jpeg'
+            image_url = own_media['data'][0]['images']['standard_resolution']['url']
+            urllib.urlretrieve(image_url, image_name)
+            print 'Recently liked media is downloaded successfully'
+        else:
+            print 'Post does not exit!!'
+    else:
+        print 'Status code other than 200 recieved!!!'
+
+
 # method to download image of a user
 def download_user_image(insta_username):
     media_id = get_post_id(insta_username)
@@ -99,6 +123,7 @@ def self_info():
 
     else:
         print 'Status code other than 200 received!'
+
 
 #method user ID by username
 def get_user_id(insta_username):
@@ -188,6 +213,7 @@ def get_users_post(insta_username):
 
     else:
         print 'Status code other than 200 received!'
+
 
 #method to get post ID of user
 def get_post_id(insta_username):
@@ -281,11 +307,13 @@ def delete_negative_comment(insta_username):
         print 'Status code other than 200 received!'
 
 
+#method to show the menu to the user
 def start_bot():
-    while True:
+    show_menu = True
+    while show_menu:
         print '\n'
-        print 'Welcome to instaBot!'
-        print 'Your menu options are:'
+        print colored('Welcome to instaBot!','blue')
+        print colored('Your menu options are:','cyan')
         print '1.Get your own details\n'
         print '2.Get details of a user by username\n'
         print '3.Get your own post\n'
@@ -296,6 +324,7 @@ def start_bot():
         print '8.Download the post of a user\n'
         print '9.Get the hashtags of all the post of user\n'
         print '10.Get the wordcloud\n'
+        print '11.Get the recent post liked by the user\n'
 
         choice=raw_input('Enter you choice: ')
         if choice=='1':
@@ -325,7 +354,8 @@ def start_bot():
             get_hashtags(insta_username)
         elif choice == '10':
             generate_wordcloud()
-
+        elif choice == '11':
+            recently_liked_media()
         else:
             print 'wrong choice'
             show_menu = False
